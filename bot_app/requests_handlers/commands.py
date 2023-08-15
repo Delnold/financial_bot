@@ -5,7 +5,9 @@ from bot_app.models import User, Savings, UserState
 
 
 def register_command(message: Message, bot: telebot.TeleBot):
-    cancel_command(message=message, bot=bot)
+    result_bool, message_text = cancel_command(message=message)
+    if result_bool:
+        bot.reply_to(message, message_text)
     user_id = message.from_user.id
     first_name = message.from_user.first_name
     last_name = message.from_user.last_name
@@ -23,13 +25,9 @@ def register_command(message: Message, bot: telebot.TeleBot):
 
 
 def start_command(message: Message, bot: telebot.TeleBot):
-    cancel_command(message=message, bot=bot)
-    user_id = message.from_user.id
-    if user_id:
-        try:
-            user = User.objects.get(user_id=user_id)
-        except User.DoesNotExist:
-            return
+    result_bool, message_text = cancel_command(message=message)
+    if result_bool:
+        bot.reply_to(message, message_text)
     bot.reply_to(message, "Hello! To offer you a tailored experience and provide our services,"
                           "we kindly ask you to use the /register command if you haven`t already used it yet!\n"
                           "It allows bot to work properly, and handle your commands!"
@@ -38,6 +36,7 @@ def start_command(message: Message, bot: telebot.TeleBot):
                           "/show_savings - show your current savings\n"
                           "/cancel - cancel ongoing commands (for now only /add_savings)\n"
                           "/register - register your telegram ID to database")
+
 
 def add_savings_command(message: Message, bot: telebot.TeleBot):
     user_id = message.from_user.id
@@ -53,7 +52,9 @@ def add_savings_command(message: Message, bot: telebot.TeleBot):
                 bot.reply_to(message, "Please provide me with your savings type!")
             elif user_state.current_state == 1:
                 if message_text == command:
-                    cancel_command(message=message, bot=bot)
+                    result_bool, message_text = cancel_command(message=message)
+                    if result_bool:
+                        bot.reply_to(message, message_text)
                     add_savings_command(message, bot)
                     return
                 user_state.update_data_state({"savings_type": message_text})
@@ -61,7 +62,9 @@ def add_savings_command(message: Message, bot: telebot.TeleBot):
                 bot.reply_to(message, "Please provide me with your quantity! The type of should be number!")
             elif user_state.current_state == 2:
                 if message_text == command:
-                    cancel_command(message=message, bot=bot)
+                    result_bool, message_text = cancel_command(message=message)
+                    if result_bool:
+                        bot.reply_to(message, message_text)
                     add_savings_command(message, bot)
                     return
                 if not message_text.isdigit():
@@ -76,7 +79,9 @@ def add_savings_command(message: Message, bot: telebot.TeleBot):
 
             elif user_state.current_state == 3:
                 if message_text == command:
-                    cancel_command(message=message, bot=bot)
+                    result_bool, message_text = cancel_command(message=message)
+                    if result_bool:
+                        bot.reply_to(message, message_text)
                     add_savings_command(message, bot)
                     return
                 if message_text.lower() == "y":
@@ -100,7 +105,9 @@ def add_savings_command(message: Message, bot: telebot.TeleBot):
 
 
 def show_savings_command(message: Message, bot: telebot.TeleBot):
-    cancel_command(message=message, bot=bot)
+    result_bool, message_text = cancel_command(message=message)
+    if result_bool:
+        bot.reply_to(message, message_text)
     user_id = message.from_user.id
     try:
         user = User.objects.get(user_id=user_id)
@@ -122,14 +129,14 @@ def show_savings_command(message: Message, bot: telebot.TeleBot):
         return
 
 
-def cancel_command(message: Message, bot: telebot.TeleBot):
+def cancel_command(message: Message):
     user_id = message.from_user.id
     existing_user = User.objects.filter(user_id=user_id).first()
     if not existing_user:
-        bot.reply_to(message, "Please use the /register command first to record your credentials and use the bot!")
-        return
+        return False, "Please use the /register command first to record your credentials and use the bot."
     user_state = UserState.objects.get_state(existing_user)
     if user_state is not None:
         UserState.objects.delete_state(existing_user)
-        bot.reply_to(message, f"The ongoing {user_state.command} command has been stopped!")
-        return
+        return True, f"The ongoing {user_state.command} command has been stopped!"
+    else:
+        return False, "There is no ongoing command!"

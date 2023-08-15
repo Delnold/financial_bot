@@ -4,12 +4,16 @@ from bot import bot
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from bot_app.requests_handlers.commands import register_command, start_command, cancel_command, add_savings_command, show_savings_command
+from bot_app.requests_handlers.commands import register_command, start_command, cancel_command, add_savings_command, \
+    show_savings_command
 from bot_app.requests_handlers.messages import handling_messages
 from bot_app.requests_handlers.callback_query import handling_callback_query
+
+
 @csrf_exempt
 def index(request):
     return JsonResponse({"message": "Visit admin panel!"})
+
 
 @csrf_exempt
 def commands(request) -> JsonResponse:
@@ -24,7 +28,9 @@ def commands(request) -> JsonResponse:
             elif command_name == "/register":
                 register_command(message=message, bot=bot)
             elif command_name == "/cancel":
-                cancel_command(message=message, bot=bot)
+                result_bool, message_text = cancel_command(message=message)
+                if not result_bool:
+                    bot.reply_to(message, message_text)
             elif command_name == "/add_savings":
                 add_savings_command(message=message, bot=bot)
             elif command_name == "/show_savings":
@@ -38,6 +44,7 @@ def commands(request) -> JsonResponse:
     else:
         print("Invalid request method")
         return JsonResponse({"error": "Invalid request method"})
+
 
 @csrf_exempt
 def messages(request) -> JsonResponse:
@@ -53,6 +60,7 @@ def messages(request) -> JsonResponse:
     else:
         print("Invalid request method")
         return JsonResponse({"error": "Invalid request method"})
+
 
 @csrf_exempt
 def callback_query(request) -> JsonResponse:
