@@ -29,8 +29,7 @@ def commands(request) -> JsonResponse:
                 register_command(message=message, bot=bot)
             elif command_name == "/cancel":
                 result_bool, message_text = cancel_command(message=message)
-                if not result_bool:
-                    bot.reply_to(message, message_text)
+                bot.reply_to(message, message_text)
             elif command_name == "/add_savings":
                 add_savings_command(message=message, bot=bot)
             elif command_name == "/show_savings":
