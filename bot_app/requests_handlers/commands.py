@@ -14,14 +14,18 @@ def register_command(message: Message, bot: telebot.TeleBot):
     username = message.from_user.username
 
     if user_id:
-        existing_user = User.objects.filter(user_id=user_id).first()
-        if existing_user:
-            bot.reply_to(message, "Your information was already recorded to our database.\n"
-                                  "There is no need to use the /register command again!")
-        new_user = User(user_id=user_id, username=username, first_name=first_name, last_name=last_name)
-        new_user.save()
-        bot.reply_to(message, "Thanks for using our bot!\n"
-                              "Your information was kindly recorded!")
+        try:
+            existing_user = User.objects.filter(user_id=user_id).first()
+            if existing_user:
+                bot.reply_to(message, "Your information was already recorded to our database.\n"
+                                      "There is no need to use the /register command again!")
+                return
+            new_user = User(user_id=user_id, username=username, first_name=first_name, last_name=last_name)
+            new_user.save()
+            bot.reply_to(message, "Thanks for using our bot!\n"
+                                  "Your information was kindly recorded!")
+        except Exception as e:
+            print(f"Error: Following User doesn`t exist!: {e}")
 
 
 def start_command(message: Message, bot: telebot.TeleBot):
